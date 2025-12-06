@@ -1,0 +1,71 @@
+# Python
+*.pyc
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+ENV/
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Django
+*.log
+db.sqlite3
+db.sqlite3-journal
+staticfiles/
+media/
+local_settings.py
+
+# Security - NEVER COMMIT
+*.key
+*.pem
+*.crt
+*.cer
+*.p12
+*.pfx
+localcert.*
+*.env
+.env*
+secrets.json
+credentials.json
+
+# Mac OS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Trash/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Large Files
+*.mp4
+*.mov
+*.MOV
+*.avi
+*.zip
+*.dmg
+*.pkg
+*.tar.gz
+
+# NEVER COMMIT THESE DIRECTORIES
+Library/
+Documents/
+Downloads/
+Desktop/
+Pictures/
+Music/
+Movies/
+Applications/
+.local/
+Web Browsers/
+Adjuster Pro/
