@@ -24,6 +24,12 @@ from .serializers import (
 from .forms import UserRegistrationForm
 
 
+def landing_page(request):
+    if request.user.is_authenticated:
+        return redirect('portfolio')
+    return render(request, 'landing.html')
+
+
 # ViewSets for API endpoints
 class BrokerageAccountViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = BrokerageAccountSerializer

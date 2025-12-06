@@ -10,7 +10,8 @@ from customer.views import (
     deposit_cash_view, withdraw_cash_view, 
     admin_change_market_hours_view, admin_create_stock_view,
     role_based_redirect, sign_out_user, admin_create_stock_api, admin_update_market_hours, 
-    get_market_status_api,admin_generate_prices,       
+    get_market_status_api, admin_generate_prices,
+    landing_page,
 )
 
 router = DefaultRouter()
@@ -21,7 +22,7 @@ router.register(r'trades', TradeViewSet, basename="trade")
 
 
 urlpatterns = [
-    path("", role_based_redirect, name='home'),
+    path("", landing_page, name='home'),
     path("admin/", admin.site.urls),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
