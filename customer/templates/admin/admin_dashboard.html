@@ -1,0 +1,104 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>ADMIN • Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}" />
+</head>
+<body class="portfolio">
+    <header class="site-header">
+        <div class="brand">
+            <img src="{% static 'images/logo_investr.io.png' %}" alt="InvestR.io Logo" class="site-logo" />
+            <span class="brand-text">ADMIN • Dashboard</span>
+        </div>
+        <nav class="nav">
+            <a href="{% url 'admin_dashboard' %}" class="active">Dashboard</a>
+            <a href="{% url 'admin_create_stock' %}">Create Stock</a>
+            <a href="{% url 'admin_change_market_hours' %}">Change Hours</a>
+            <a href="{% url 'sign_out' %}">Logout</a>
+        </nav>
+    </header>
+    
+    <main class="wrap">
+        <div class="admin-card dashboard-card">
+            <div class="construction-icon">🚧</div>
+            <h2>Administrator Dashboard</h2>
+            
+            <div class="construction-message">
+                Dashboard Under Development
+            </div>
+            
+            <p style="color: var(--muted);">
+                Use the navigation bar or links below to access admin functions.
+            </p>
+            
+            <div class="admin-links">
+                <a href="{% url 'admin_create_stock' %}">Create New Stock</a>
+                <a href="{% url 'admin_change_market_hours' %}">Change Market Hours</a>
+            </div>
+
+            <div style="margin-top: 40px; padding: 20px; background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px;">
+                <h3 style="margin: 0 0 12px;">Stock Price Generator</h3>
+                <p style="color: var(--muted); margin-bottom: 16px;">
+                    Update all stock prices with random fluctuations (-5% to +5%)
+                </p>
+                <button id="generatePricesBtn" class="btn" style="width: auto;">
+                    Generate New Prices
+                </button>
+                <div id="priceGenStatus" style="margin-top: 12px; display: none;"></div>
+            </div>
+        </div>
+    </main>
+
+    <script src="{% static 'js/admin.js' %}"></script>
+    <script>
+        const generateBtn = document.getElementById('generatePricesBtn');
+        const statusDiv = document.getElementById('priceGenStatus');
+
+        generateBtn.addEventListener('click', async () => {
+            generateBtn.disabled = true;
+            generateBtn.textContent = 'Generating...';
+            statusDiv.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/v1/admin/generate_prices/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    statusDiv.style.display = 'block';
+                    statusDiv.style.color = '#065f46';
+                    statusDiv.style.background = '#d1fae5';
+                    statusDiv.style.padding = '10px 12px';
+                    statusDiv.style.borderRadius = '8px';
+                    statusDiv.textContent = `${data.message}`;
+                } else {
+                    statusDiv.style.display = 'block';
+                    statusDiv.style.color = '#b91c1c';
+                    statusDiv.style.background = '#fee2e2';
+                    statusDiv.style.padding = '10px 12px';
+                    statusDiv.style.borderRadius = '8px';
+                    statusDiv.textContent = `${data.error || 'Failed to generate prices'}`;
+                }
+            } catch (error) {
+                statusDiv.style.display = 'block';
+                statusDiv.style.color = '#b91c1c';
+                statusDiv.style.background = '#fee2e2';
+                statusDiv.style.padding = '10px 12px';
+                statusDiv.style.borderRadius = '8px';
+                statusDiv.textContent = 'Network error. Please try again.';
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.textContent = 'Generate New Prices';
+            }
+        });
+    </script>
+</body>
+</html>

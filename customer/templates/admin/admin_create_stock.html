@@ -1,0 +1,172 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ADMIN • Create Stock</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="{% static 'css/admin.css' %}" />
+</head>
+<body class="portfolio">
+  <header class="site-header">
+    <div class="brand">
+      <img src="{% static 'images/logo_investr.io.png' %}" alt="InvestR.io Logo" class="site-logo" />
+      <span class="brand-text">ADMIN • Create Stock</span>
+    </div>
+    <nav class="nav">
+      <a href="{% url 'admin_dashboard' %}">Dashboard</a>
+      <a href="{% url 'admin_create_stock' %}" class="active">Create Stock</a>
+      <a href="{% url 'admin_change_market_hours' %}">Change Hours</a>
+      <a href="{% url 'sign_out' %}">Logout</a>
+    </nav>
+  </header>
+  
+  <main class="wrap">
+    <section class="admin-card form-card">
+      <h2>Create New Stock</h2>
+      <form id="createForm" class="grid-form" novalidate>
+        <label for="name">Stock Name</label>
+        <input id="name" class="input" type="text" placeholder="e.g., Apple Inc." required />
+        
+        <label for="ticker">Ticker Symbol</label>
+        <input id="ticker" class="input" type="text" placeholder="e.g., AAPL" maxlength="10" required />
+        
+        <label for="price">Starting Price ($)</label>
+        <input id="price" class="input" type="number" min="0.01" step="0.01" placeholder="e.g., 190.00" required />
+        
+        <label for="volume">Initial Volume</label>
+        <input id="volume" class="input" type="number" min="1" step="1" placeholder="e.g., 1000000" />
+        
+        <label for="status">Status</label>
+        <div style="display: flex; gap: 16px; align-items: center;">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="radio" name="status" value="Active" id="statusActive" checked style="width: auto; height: 18px; width: 18px; cursor: pointer;" />
+            <span>Active</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="radio" name="status" value="Inactive" id="statusInactive" style="width: auto; height: 18px; width: 18px; cursor: pointer;" />
+            <span>Inactive</span>
+          </label>
+        </div>
+      </form>
+      
+      <div class="btn-row">
+        <button id="createBtn" class="btn">Create Stock</button>
+        <button type="button" id="cancelBtn" class="btn secondary">Cancel</button>
+      </div>
+      
+      <div id="warn" class="warn"></div>
+      <div id="ok" class="ok"></div>
+    </section>
+  </main>
+  
+  <script src="{% static 'js/admin.js' %}"></script>
+  <script>
+    // Get form elements
+    const nameEl = $('name');
+    const tickerEl = $('ticker');
+    const priceEl = $('price');
+    const volumeEl = $('volume');
+    const statusActiveEl = $('statusActive');
+    const statusInactiveEl = $('statusInactive');
+    const createBtn = $('createBtn');
+    const cancelBtn = $('cancelBtn');
+    const warn = $('warn');
+    const ok = $('ok');
+    
+    const localClearAlerts = () => clearAlerts(warn, ok);
+    
+    function clearForm() {
+        nameEl.value = '';
+        tickerEl.value = '';
+        priceEl.value = '';
+        volumeEl.value = '';
+        statusActiveEl.checked = true;
+    }
+    
+    function validate() {
+        const name = nameEl.value.trim();
+        const ticker = tickerEl.value.trim().toUpperCase();
+        const price = parseFloat(priceEl.value);
+        const volume = parseInt(volumeEl.value) || 0;
+        const status = statusActiveEl.checked ? 'Active' : 'Inactive';
+        
+        if (!name || !ticker || !price) {
+            return { valid: false, error: 'Stock Name, Ticker, and Price are required.' };
+        }
+        
+        if (ticker.length < 1 || ticker.length > 10) {
+            return { valid: false, error: 'Ticker must be 1-10 characters.' };
+        }
+        
+        if (price <= 0) {
+            return { valid: false, error: 'Price must be greater than $0.00.' };
+        }
+        
+        return { valid: true, data: { name, ticker, price, volume, status } };
+    }
+    
+    createBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        localClearAlerts();
+        
+        const result = validate();
+        
+        if (!result.valid) {
+            warn.textContent = result.error;
+            warn.style.display = 'block';
+            return;
+        }
+        
+        const { name, ticker, price, volume, status } = result.data;
+        
+        createBtn.disabled = true;
+        createBtn.textContent = 'Creating...';
+        
+        fetch('/api/v1/admin/create_stock/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ 
+                company_name: name, 
+                ticker: ticker, 
+                current_price: price, 
+                float_shares: volume || 1000000  // Default to 1M if not provided
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                ok.textContent = `Stock ${ticker} created successfully with ${status} status.`;
+                ok.style.display = 'block';
+                clearForm();
+            } else {
+                warn.textContent = data.error || 'Failed to create stock.';
+                warn.style.display = 'block';
+            }
+        })
+        .catch(error => {
+            warn.textContent = 'Network error. Please try again.';
+            warn.style.display = 'block';
+            console.error('Error:', error);
+        })
+        .finally(() => {
+            createBtn.disabled = false;
+            createBtn.textContent = 'Create Stock';
+        });
+    });
+    
+    cancelBtn.addEventListener('click', () => {
+        localClearAlerts();
+        clearForm();
+    });
+    
+    // Auto-uppercase ticker
+    tickerEl.addEventListener('input', () => {
+        tickerEl.value = tickerEl.value.toUpperCase();
+    });
+  </script>
+</body>
+</html>

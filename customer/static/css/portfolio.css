@@ -1,0 +1,196 @@
+:root{
+  --bg: #0b3d2e;
+  --bg-2: #14532d;
+  --panel: #ffffff;
+  --ink: #1f2937;
+  --muted: #6b7280;
+  --primary: #16a34a;
+  --primary-600: #15803d;
+  --ring: #86efac;
+  --surface: #ecfdf5;
+  --border: #d1fae5;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  color: var(--ink);
+  background: linear-gradient(135deg, var(--bg) 0%, var(--bg-2) 100%);
+}
+
+/* Header */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  background: rgba(0,0,0,.15);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid rgba(255,255,255,.15);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.site-logo {
+  height: 100px;
+  width: auto;
+  display: block;
+}
+
+.brand-text {
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+/* Navigation */
+.nav a {
+  color: #e7fff1;
+  text-decoration: none;
+  margin-left: 16px;
+  font-weight: 600;
+  padding: 8px 10px;
+  border-radius: 8px;
+}
+
+.nav a:hover { background: rgba(255,255,255,.12); }
+.nav a.active { background: var(--primary); color: #fff; }
+
+/* Main content */
+.wrap {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 14px auto 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 2fr 1.4fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.15);
+  padding: 20px;
+}
+
+h2 { margin: 0 0 12px; }
+
+/* Tables */
+.table-wrap { overflow-x: auto; }
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.table th,
+.table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.table thead th {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.pos { color: #15803d; font-weight: 600; }
+.neg { color: #b91c1c; font-weight: 600; }
+
+/* Chart */
+.chart {
+  width: 100%;
+  height: 240px;
+}
+
+.chart svg {
+  width: 100%;
+  height: 100%;
+  color: #000;
+}
+
+.chart-bg {
+  fill: #f0fff7;
+  stroke: #d1fae5;
+  stroke-width: 1;
+}
+
+.line {
+  stroke: var(--primary);
+  stroke-width: 4;
+}
+
+/* Summary */
+.summary {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin: 20px 0 24px;
+}
+
+.metric {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.12);
+}
+
+.metric span {
+  color: var(--muted);
+  margin-right: 8px;
+}
+
+/* Market Status Banner */
+.market-status-wrap {
+  max-width: 640px;
+  margin: 24px auto 0;
+}
+
+.market-status {
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.market-status.open {
+  background: #d1fae5;
+  border: 1px solid #10b981;
+  color: #065f46;
+}
+
+.market-status.closed {
+  background: #fee2e2;
+  border: 1px solid #ef4444;
+  color: #991b1b;
+}
+
+.market-status-icon {
+  font-size: 1.1em;
+}
+
+/* Responsive */
+@media (max-width: 980px) {
+  .grid { grid-template-columns: 1fr; }
+}

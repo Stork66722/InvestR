@@ -1,0 +1,82 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Create Your Account</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="{% static 'css/sign_up.css' %}" />
+</head>
+<body>
+  <header class="site-header">
+    <img src="{% static 'images/logo_investr.io.png' %}" alt="InvestR.io Logo" class="site-logo">
+  </header>
+  <div class="page">
+    <div class="container">
+      <h2>Create your account</h2>
+
+      {% if form.non_field_errors %}
+          {% for error in form.non_field_errors %}
+              <div class="error">{{ error }}</div>
+          {% endfor %}
+      {% endif %}
+
+      <form method="post" action="{% url 'register' %}">
+        {% csrf_token %} 
+        
+        <div class="field-wrapper">
+            {{ form.FullName.errors }}
+            <input type="text" 
+                   name="{{ form.FullName.name }}" 
+                   placeholder="Full Name" 
+                   value="{{ form.FullName.value|default:'' }}" 
+                   required />
+        </div>
+        
+        <div class="field-wrapper">
+            {{ form.email.errors }}
+            <input type="email" 
+                   name="{{ form.email.name }}" 
+                   placeholder="Email Address" 
+                   value="{{ form.email.value|default:'' }}" 
+                   required />
+        </div>
+        
+        <div class="field-wrapper">
+            {{ form.UserName.errors }}
+            <input type="text" 
+                   name="{{ form.UserName.name }}" 
+                   placeholder="Username" 
+                   value="{{ form.UserName.value|default:'' }}" 
+                   required />
+        </div>
+        
+        <div class="field-wrapper">
+            {{ form.password.errors }}
+            <input type="password" 
+                   name="{{ form.password.name }}" 
+                   placeholder="Password" 
+                   required />
+        </div>
+        
+        <div class="field-wrapper">
+            {{ form.password2.errors }}
+            <input type="password" 
+                   name="{{ form.password2.name }}" 
+                   placeholder="Confirm Password" 
+                   required />
+        </div>
+        
+        <button type="submit">Sign Up</button>
+      </form>
+
+      <div class="signup-link">
+        Already have an account? <a href="{% url 'sign_in' %}">Sign In</a>
+      </div>
+    </div>
+
+    <div class="hero-image" aria-hidden="true"></div>
+  </div>
+</body>
+</html>
+

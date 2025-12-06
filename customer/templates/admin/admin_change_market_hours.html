@@ -1,0 +1,171 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ADMIN • Change Market Hours</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="{% static 'css/admin.css' %}" />
+</head>
+<body class="portfolio">
+  <header class="site-header">
+    <div class="brand">
+      <img src="{% static 'images/logo_investr.io.png' %}" alt="InvestR.io Logo" class="site-logo" />
+      <span class="brand-text">ADMIN • Change Market Hours</span>
+    </div>
+    <nav class="nav">
+      <a href="{% url 'admin_dashboard' %}">Dashboard</a>
+      <a href="{% url 'admin_create_stock' %}">Create Stock</a>
+      <a href="{% url 'admin_change_market_hours' %}" class="active">Change Hours</a>
+      <a href="{% url 'sign_out' %}">Logout</a>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <section class="admin-card form-card">
+      <h2>Change Market Hours</h2>
+      
+      <form id="hoursForm" class="grid-form hours-form" novalidate>
+        <label for="schedule">New Market Schedule</label>
+        <input id="schedule" class="input" type="text" placeholder="e.g., Mon–Fri" value="Mon–Fri" />
+        <span class="hint">Describe trading days (e.g., <em>Mon–Fri</em> or <em>Mon–Sat</em>).</span>
+        
+        <label for="hours">New Market Hours</label>
+        <input id="hours" class="input" type="text" placeholder="HH:MM–HH:MM (24h)" />
+        <span class="hint">Use 24-hour format like <em>09:30–16:00</em>.</span>
+      </form>
+
+      <div class="btn-row">
+        <button id="updateBtn" class="btn">Update</button>
+        <button id="cancelBtn" class="btn secondary" type="button">Cancel</button>
+      </div>
+
+      <div id="ok" class="ok">Market schedule updated successfully.</div>
+      <div id="warn" class="warn">Invalid input. Use days like "Mon–Fri" and hours like "09:30–16:00".</div>
+    </section>
+  </main>
+
+  <script src="{% static 'js/admin.js' %}"></script>
+  <script>
+    // Get form elements
+    const scheduleEl = $('schedule');
+    const hoursEl = $('hours');
+    const updateBtn = $('updateBtn');
+    const cancelBtn = $('cancelBtn');
+    const ok = $('ok');
+    const warn = $('warn');
+
+    const localClearAlerts = () => clearAlerts(warn, ok);
+
+    // Validation patterns
+    const scheduleRe = /^[A-Za-z\s–\-to,]+$/;
+    const hoursRe = /^(?:[01]\d|2[0-3]):[0-5]\d[–-](?:[01]\d|2[0-3]):[0-5]\d$/;
+
+    function validate() {
+      const schedule = scheduleEl.value.trim();
+      const hours = hoursEl.value.trim();
+      
+      if (!schedule || !hours) {
+        return { valid: false, error: 'Both fields are required.' };
+      }
+      
+      if (!scheduleRe.test(schedule)) {
+        return { valid: false, error: 'Invalid schedule format.' };
+      }
+      
+      // Normalize en-dash / hyphen
+      const hoursNorm = hours.replace('-', '–');
+      if (!hoursRe.test(hoursNorm)) {
+        return { valid: false, error: 'Invalid hours format. Use HH:MM–HH:MM.' };
+      }
+      
+      // Ensure open < close
+      const [open, close] = hoursNorm.split('–');
+      if (open >= close) {
+        return { valid: false, error: 'Closing time must be after opening time.' };
+      }
+      
+      return { valid: true, data: { schedule, hours: hoursNorm } };
+    }
+
+    // Parse hours string into components (09:30–16:00 → 9, 30, 16, 0)
+    function parseHours(hoursStr) {
+      const [openTime, closeTime] = hoursStr.split('–');
+      const [openH, openM] = openTime.split(':').map(Number);
+      const [closeH, closeM] = closeTime.split(':').map(Number);
+      return { openH, openM, closeH, closeM };
+    }
+
+    updateBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      localClearAlerts();
+
+      const result = validate();
+
+      if (!result.valid) {
+        warn.textContent = result.error;
+        warn.style.display = 'block';
+        return;
+      }
+
+      const { schedule, hours } = result.data;
+      const { openH, openM, closeH, closeM } = parseHours(hours);
+
+      updateBtn.disabled = true;
+      updateBtn.textContent = 'Updating...';
+
+      // Send to backend API
+      fetch('/api/v1/admin/market_hours/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+          open_hour: openH,
+          open_minute: openM,
+          close_hour: closeH,
+          close_minute: closeM
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          ok.textContent = `Market schedule set to ${schedule}, ${hours}.`;
+          ok.style.display = 'block';
+        } else {
+          warn.textContent = data.error || 'Failed to update market hours.';
+          warn.style.display = 'block';
+        }
+      })
+      .catch(error => {
+        warn.textContent = 'Network error. Please try again.';
+        warn.style.display = 'block';
+        console.error('Error:', error);
+      })
+      .finally(() => {
+        updateBtn.disabled = false;
+        updateBtn.textContent = 'Update';
+      });
+    });
+
+    cancelBtn.addEventListener('click', () => {
+      localClearAlerts();
+      scheduleEl.value = 'Mon–Fri';
+      hoursEl.value = '';
+    });
+
+    // Load current hours on page load
+    fetch('/api/v1/market-status/')
+      .then(response => response.json())
+      .then(data => {
+        if (data.open_time && data.close_time) {
+          hoursEl.value = `${data.open_time}–${data.close_time}`;
+        }
+      })
+      .catch(error => {
+        console.error('Error loading current hours:', error);
+      });
+  </script>
+</body>
+</html>

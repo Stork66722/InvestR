@@ -1,0 +1,129 @@
+{% load static %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Shareholder Portfolio</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="{% static 'css/portfolio.css' %}">
+</head>
+<body class="portfolio">
+  <header class="site-header">
+    <div class="brand">
+      <img src="{% static 'images/logo_investr.io.png' %}" alt="InvestR.io Logo" class="site-logo">
+      <span class="brand-text">Shareholder Portfolio</span>
+    </div>
+    <nav class="nav">
+      <a href="{% url 'portfolio' %}" class="active">Portfolio</a>
+      <a href="{% url 'buy_stock' %}">Buy Stock</a>
+      <a href="{% url 'sell_stock' %}">Sell Stock</a>
+      <a href="{% url 'deposit_cash' %}">Deposit Cash</a>
+      <a href="{% url 'withdraw_cash' %}">Withdraw Cash</a>
+      <a href="{% url 'sign_out' %}">Logout</a>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <section class="grid">
+      <div class="card">
+        <h2>Portfolio Holdings</h2>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Stock</th>
+                <th>Ticker</th>
+                <th>Shares</th>
+                <th>Current Price</th>
+                <th>Total Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% if positions %}
+                {% for position in positions %}
+                <tr>
+                  <td>{{ position.stock.name }}</td>
+                  <td>{{ position.stock.ticker }}</td>
+                  <td>{{ position.quantity }}</td>
+                  <td>${{ position.stock.current_price|floatformat:2 }}</td>
+                  <td>${{ position.market_value|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+              {% else %}
+                <tr>
+                  <td colspan="5">No stock holdings found.</td>
+                </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Asset Growth</h2>
+        <div class="chart">
+          <svg viewBox="0 0 400 220" preserveAspectRatio="none">
+            <rect x="0" y="0" width="400" height="220" class="chart-bg"/>
+            <g stroke="currentColor" opacity="0.12">
+              <line x1="0" y1="180" x2="400" y2="180"/>
+              <line x1="0" y1="140" x2="400" y2="140"/>
+              <line x1="0" y1="100" x2="400" y2="100"/>
+              <line x1="0" y1="60" x2="400" y2="60"/>
+            </g>
+            <polyline class="line"
+              points="10,170 70,150 130,160 190,120 250,130 310,80 370,95"
+              fill="none"/>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <section class="summary">
+      <div class="metric"><span>Cash Balance:</span> <strong>${{ account.cash_balance|default:"0.00"|floatformat:2|intcomma }}</strong></div>
+      <div class="metric"><span>Total Portfolio Value:</span> <strong>${{ total_market_value|default:"0.00"|floatformat:2|intcomma }}</strong></div>
+      <div class="metric"><span>Overall Account Value:</span> <strong>${{ total_equity|default:"0.00"|floatformat:2|intcomma }}</strong></div>
+    </section>
+
+    <section class="card">
+      <h2>Recent Activity</h2>
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Type</th>
+              <th>Stock</th>
+              <th>Qty</th>
+              <th>Price</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if recent_orders %}
+              {% for activity in recent_orders %}
+              <tr>
+                <td>
+                  {% if activity.date == 'Recent' %}
+                    Recent
+                  {% else %}
+                    {{ activity.date|date:"m/d/y" }}
+                  {% endif %}
+                </td>
+                <td>{{ activity.type }}</td>
+                <td>{{ activity.stock }}</td>
+                <td>{{ activity.quantity }}</td>
+                <td>${{ activity.price|floatformat:2 }}</td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="5">No recent activity</td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,136 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Deposit Cash</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="{% static 'css/portfolio.css' %}">
+  <style>
+    /* Keep ONLY page-specific styles here */
+    .deposit-card{max-width:560px;margin:24px auto;background:#fff;border:1px solid #d1fae5;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.15);padding:24px}
+    .deposit-card h2{margin:0 0 16px}
+    .field{margin:16px 0}
+    .field label{display:block;font-weight:600;margin-bottom:6px}
+    .input{width:100%;padding:12px 14px;border:1px solid #cbd5e1;border-radius:8px;background:#ecfdf5;outline:none;font-size:1rem}
+    .btn{width:100%;padding:12px 16px;background:#16a34a;color:#fff;border:0;border-radius:8px;font-weight:700;cursor:pointer;margin-top:8px}
+    .btn[disabled]{opacity:.5;cursor:not-allowed}
+    .meta{color:#6b7280;margin-top:8px}
+    .strong{font-weight:700;color:#0f172a}
+    .warn{margin-top:12px;color:#b91c1c;background:#fee2e2;border:1px solid #fecaca;padding:10px 12px;border-radius:8px;display:none}
+    .ok{margin-top:12px;color:#065f46;background:#ecfdf5;border:1px solid #a7f3d0;padding:10px 12px;border-radius:8px;display:none}
+  </style>
+</head>
+<body class="portfolio">
+  <header class="site-header">
+    <div class="brand">
+      <img src="{% static 'images/logo_investr.io.png' %}" alt="InvestR.io Logo" class="site-logo" />
+      <span class="brand-text">Deposit Cash</span>
+    </div>
+    <nav class="nav">
+      <a href="{% url 'portfolio' %}">Portfolio</a>
+      <a href="{% url 'buy_stock' %}">Buy Stock</a>
+      <a href="{% url 'sell_stock' %}">Sell Stock</a>
+      <a href="{% url 'deposit_cash' %}" class="active">Deposit Cash</a>
+      <a href="{% url 'withdraw_cash' %}">Withdraw Cash</a>
+      <a href="{% url 'sign_out' %}">Logout</a>
+    </nav>
+  </header>
+
+<main class="wrap">
+    <section class="deposit-card">
+        <h2>Deposit Cash</h2>
+        
+        <form id="cashForm">
+            {% csrf_token %}
+            <input type="hidden" name="type" value="DEPOSIT">
+            <div class="field">
+                <label for="amount">Enter Amount to Deposit ($)</label>
+                <input id="amount" name="amount" class="input" type="number" min="0.01" step="0.01" placeholder="e.g., 250.00" required />
+            </div>
+            <button id="depositBtn" class="btn">Deposit</button>
+        </form>
+
+        <div class="meta">Cash Available: <span id="cashAvail" class="strong">{% if account %}${{ account.cash_balance|floatformat:2 }}{% else %}$0.00{% endif %}</span></div>
+        <div id="warn" class="warn">Invalid amount. Please enter a whole number greater than 0.</div>
+        <div id="ok" class="ok">Deposit successful.</div>
+    </section>
+</main>
+
+  <script>
+    const amountInput = document.getElementById('amount');
+    const depositBtn = document.getElementById('depositBtn');
+    const cashAvailEl = document.getElementById('cashAvail');
+    const warnEl = document.getElementById('warn');
+    const okEl = document.getElementById('ok');     
+    const cashForm = document.getElementById('cashForm');
+
+    const initialCashString = cashAvailEl.textContent.replace('$', '').replace(/,/g, '');
+    let currentCash = parseFloat(initialCashString) || 0;
+    
+    const fmt = n => '$' + (Number(n).toFixed(2)).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+    function updateCashDisplay() {
+        cashAvailEl.textContent = fmt(currentCash);
+    }
+
+    function validate() {
+        const n = parseFloat(amountInput.value);
+        const valid = n > 0;
+        depositBtn.disabled = !valid;
+        
+      
+        warnEl.style.display = 'none';
+        okEl.style.display = 'none';
+    }
+
+    amountInput.addEventListener('input', validate);
+
+    cashForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const amount = parseFloat(amountInput.value);
+        if (!(amount > 0)) { validate(); return; } 
+
+        depositBtn.disabled = true;
+        depositBtn.textContent = 'Processing...';
+        warnEl.style.display = 'none';
+        okEl.textContent = 'Processing deposit...';
+        okEl.style.display = 'block';
+
+        fetch('/api/v1/accounts/deposit/', { 
+            method: 'POST',
+            body: new FormData(cashForm),
+        })
+        .then(response => response.json().then(data => ({ status: response.status, body: data })))
+        .then(({ status, body }) => {
+            if (status === 200) {
+                currentCash = parseFloat(body.new_cash);
+                updateCashDisplay();
+                okEl.textContent = body.message + `. New Balance: ${fmt(currentCash)}`;
+                okEl.className = 'ok'; 
+                warnEl.style.display = 'none';
+                amountInput.value = ''; 
+            } else {
+                warnEl.textContent = body.error || `Transaction failed with status ${status}.`;
+                warnEl.style.display = 'block';
+                okEl.style.display = 'none';
+            }
+        })
+        .catch(error => {
+            warnEl.textContent = 'A network error occurred. Please try again.';
+            warnEl.style.display = 'block';
+            okEl.style.display = 'none';
+            console.error('Error:', error);
+        })
+        .finally(() => {
+            depositBtn.textContent = 'Deposit';
+            validate(); 
+        });
+    });
+
+    updateCashDisplay();
+    validate();
+</script>
+</body>
+</html>

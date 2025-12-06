@@ -1,0 +1,260 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Sell Stock</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="{% static 'css/portfolio.css' %}" />
+
+    <style>
+        /* Page-specific tweaks (everything else comes from portfolio.css) */
+        .sell-card{
+            max-width: 640px;
+            margin: 24px auto;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,.15);
+            padding: 24px;
+        }
+        .sell-card h2 { margin: 0 0 16px; }
+
+        .field{ margin-bottom:16px; }
+        .field label{ display:block; font-weight:600; margin-bottom:6px; }
+
+        .select, .input{
+            width:100%;
+            padding:12px 14px;
+            border:1px solid #cbd5e1;
+            border-radius:8px;
+            background: var(--surface);
+            outline:none;
+            transition: box-shadow .15s, border-color .15s;
+            font-size:1rem;
+            box-sizing:border-box;
+        }
+        .select:focus, .input:focus{ border-color: var(--primary); box-shadow:0 0 0 3px var(--ring); }
+
+        .numbers{ display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin:8px 0 12px; }
+        .meta{ color: var(--muted); }
+        .strong{ font-weight:700; color:#0f172a; }
+
+        .btn{
+            width:100%;
+            padding:12px 16px;
+            background: var(--primary);
+            color:#fff;
+            border:0;
+            border-radius:8px;
+            font-weight:700;
+            cursor:pointer;
+            transition: background .15s, opacity .15s, transform .02s;
+        }
+        .btn:hover{ background: var(--primary-600); }
+        .btn:active{ transform: translateY(1px); }
+        .btn[disabled]{ opacity:.5; cursor:not-allowed; }
+
+        .warn{
+            margin-top:12px;
+            color:#b91c1c;
+            background:#fee2e2;
+            border:1px solid #fecaca;
+            padding:10px 12px;
+            border-radius:8px;
+            display:none;
+        }
+    </style>
+    </head>
+
+  <body class="portfolio">
+  <header class="site-header">
+    <div class="brand">
+      <img src="{% static 'images/logo_investr.io.png' %}" alt="InvestR.io Logo" class="site-logo" />
+      <span class="brand-text">Sell Stock</span>
+    </div>
+    <nav class="nav">
+      <a href="{% url 'portfolio' %}">Portfolio</a>
+      <a href="{% url 'buy_stock' %}">Buy Stock</a>
+      <a href="{% url 'sell_stock' %}" class="active">Sell Stock</a>
+      <a href="{% url 'deposit_cash' %}">Deposit Cash</a>
+      <a href="{% url 'withdraw_cash' %}">Withdraw Cash</a>
+      <a href="{% url 'sign_out' %}">Logout</a>
+    </nav>
+  </header>
+
+  <!-- Market Status Banner -->
+<div class="market-status-wrap">
+  {% if market_status.is_open %}
+    <div class="market-status open">
+      <span class="market-status-icon">[OPEN]</span>
+      Market Open - Trading hours: {{ market_status.open_time }} - {{ market_status.close_time }}
+    </div>
+  {% else %}
+    <div class="market-status closed">
+      <span class="market-status-icon">[CLOSED]</span>
+      Market Closed - {{ market_status.message }}
+    </div>
+  {% endif %}
+</div>
+
+  <main class="wrap">
+    <section class="sell-card">
+      <h2>Sell Stock</h2>
+      
+      <form id="tradeForm" method="POST" action="/api/v1/accounts/trade/" style="display:none;">
+          {% csrf_token %}
+          <input type="hidden" name="ticker" id="tradeTickerSell">
+          <input type="hidden" name="quantity" id="tradeQuantitySell">
+          <input type="hidden" name="type" value="SELL">
+      </form>
+
+      <div class="field">
+        <label for="stock">Select Stock</label>
+        <select id="stock" class="select">
+          <option value="" selected disabled>Choose a stock to sell</option>
+          {% for position in positions %}
+          <option 
+            value="{{ position.stock.current_price }}" 
+            data-ticker="{{ position.stock.ticker }}"
+            data-held="{{ position.quantity|floatformat:0 }}"
+          >
+            {{ position.stock.ticker }} — {{ position.stock.name }} ({{ position.quantity|floatformat:0 }} Held)
+          </option>
+          {% empty %}
+          <option value="" disabled>You have no current holdings.</option>
+          {% endfor %}
+        </select>
+        <div class="meta">
+          Current Holding: <span id="holding" class="strong">0</span> Shares | Price: <span id="priceDisplaySell" class="strong">$0.00</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="shares">Number of Shares</label>
+        <input id="shares" class="input" type="number" min="1" step="1" placeholder="e.g., 5" />
+      </div>
+
+      <div class="numbers">
+        <div>Estimated Proceeds: <span id="proceeds" class="strong">$0.00</span></div>
+        <div>Cash Available: <span id="cashAvail" class="strong">{% if account %}${{ account.cash_balance|floatformat:2 }}{% else %}N/A{% endif %}</span></div>
+      </div>
+      
+      <div id="statusMessage" class="warn" style="display:none; color: var(--primary); background: #eff6ff; border: 1px solid #bfdbfe;"></div>
+
+      <button id="reviewSellBtn" class="btn" disabled>Review Order</button>
+      <div id="warnShares" class="warn">Insufficient shares to complete this trade.</div>
+    </section>
+  </main>
+
+  <div id="sellConfirmModal" class="modal" style="display: none;">
+    <div class="modal-overlay" id="sellModalOverlay"></div>
+    <div class="modal-dialog">
+        <div class="modal-header">
+            <h2>Review Your Sale</h2>
+        </div>
+        <div class="modal-body">
+            <div id="sellOrderSummary" class="order-summary"></div>
+        </div>
+        <div class="modal-footer">
+            <button id="cancelSellBtn" class="btn-cancel">Cancel Order</button>
+            <button id="confirmSellBtn" class="btn-confirm">Confirm Sale</button>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Order Confirmation Popup */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.modal-dialog {
+    position: relative;
+    background: white;
+    max-width: 500px;
+    margin: 100px auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    z-index: 1001;
+}
+
+.modal-header {
+    padding: 20px;
+    border-bottom: 1px solid #ddd;
+    background: #f5f5f5;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: #2c5f2d;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.order-summary {
+    background: #f9f9f9;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.order-summary p {
+    margin: 10px 0;
+    font-size: 16px;
+}
+
+.order-total {
+    font-weight: bold;
+    font-size: 18px;
+    color: #2c5f2d;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 2px solid #2c5f2d;
+}
+
+.modal-footer {
+    padding: 20px;
+    border-top: 1px solid #ddd;
+    text-align: right;
+}
+
+.btn-cancel, .btn-confirm {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-left: 10px;
+}
+
+.btn-cancel {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-confirm {
+    background: #2c5f2d;
+    color: white;
+}
+</style>
+<script src="{% static 'js/sell_stock.js' %}"></script>
+</body>
+</html>
