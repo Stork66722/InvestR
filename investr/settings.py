@@ -16,6 +16,7 @@ from decouple import config
 import pymysql
 pymysql.install_as_MySQLdb()
 import os
+import dj_database_url
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -29,15 +30,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-6jxynsxd=z6bcuf0)p19$u$n26+o%wy_n69943zk_95(x5t1qc'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
-ALLOWED_HOSTS = [
-    'localhost',
-    '127.0.0.1',
-    '.elasticbeanstalk.com',
-    '.us-east-1.elb.amazonaws.com',  # Add your region
-    '*'  # Temporary - remove in production
-]
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
+
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 # Application definition
 
