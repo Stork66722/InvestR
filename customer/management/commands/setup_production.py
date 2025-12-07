@@ -8,9 +8,9 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # Create admin user
         try:
-            if not CustomUser.objects.filter(username='admin').exists():
+            if not CustomUser.objects.filter(UserName='admin').exists():
                 admin = CustomUser.objects.create_superuser(
-                    username='admin',
+                    UserName='admin',
                     email='admin@investr.com',
                     password='InvestR2024!',
                     full_name='Admin User'
@@ -25,7 +25,7 @@ class Command(BaseCommand):
         stocks_data = [
             {
                 'ticker': 'AAPL',
-                'company_name': 'Apple Inc.',
+                'name': 'Apple Inc.',
                 'current_price': 189.41,
                 'opening_price': 189.00,
                 'day_high': 190.50,
@@ -34,7 +34,7 @@ class Command(BaseCommand):
             },
             {
                 'ticker': 'GOOGL',
-                'company_name': 'Alphabet Inc.',
+                'name': 'Alphabet Inc.',
                 'current_price': 139.64,
                 'opening_price': 139.00,
                 'day_high': 140.50,
@@ -43,7 +43,7 @@ class Command(BaseCommand):
             },
             {
                 'ticker': 'AMZN',
-                'company_name': 'Amazon.com Inc.',
+                'name': 'Amazon.com Inc.',
                 'current_price': 175.61,
                 'opening_price': 175.00,
                 'day_high': 176.01,
@@ -52,7 +52,7 @@ class Command(BaseCommand):
             },
             {
                 'ticker': 'MSFT',
-                'company_name': 'Microsoft Corporation',
+                'name': 'Microsoft Corporation',
                 'current_price': 378.91,
                 'opening_price': 378.00,
                 'day_high': 380.25,
@@ -61,7 +61,7 @@ class Command(BaseCommand):
             },
             {
                 'ticker': 'TSLA',
-                'company_name': 'Tesla Inc.',
+                'name': 'Tesla Inc.',
                 'current_price': 242.84,
                 'opening_price': 242.00,
                 'day_high': 245.50,
