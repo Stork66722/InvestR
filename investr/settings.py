@@ -57,6 +57,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -190,3 +191,6 @@ AUTH_USER_MODEL = 'customer.CustomUser'
 LOGIN_URL = '/sign_in/'
 
 LOGIN_REDIRECT_URL = '/role_router/'
+
+# WhiteNoise configuration for serving static files
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
