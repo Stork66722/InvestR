@@ -11,12 +11,12 @@ class Command(BaseCommand):
             if not CustomUser.objects.filter(UserName='admin').exists():
                 admin = CustomUser.objects.create_superuser(
                     UserName='admin',
-                    FullName='Admin User'
                     email='admin@investr.com',
-                    password='InvestR2024!',
-                    role='admin'
+                    FullName='Admin User',
+                    Role='ADMIN',
+                    password='InvestR2024!'
                 )
-                self.stdout.write(self.style.SUCCESS('✓ Admin user created (username: admin, password: InvestR2024!)'))
+                self.stdout.write(self.style.SUCCESS('Admin user created (username: admin, password: InvestR2024!)'))
             else:
                 self.stdout.write(self.style.WARNING('Admin user already exists'))
         except Exception as e:
@@ -27,6 +27,7 @@ class Command(BaseCommand):
             {
                 'ticker': 'AAPL',
                 'name': 'Apple Inc.',
+                'initial_price': 189.00,
                 'current_price': 189.41,
                 'opening_price': 189.00,
                 'day_high': 190.50,
@@ -36,6 +37,7 @@ class Command(BaseCommand):
             {
                 'ticker': 'GOOGL',
                 'name': 'Alphabet Inc.',
+                'initial_price': 139.00,
                 'current_price': 139.64,
                 'opening_price': 139.00,
                 'day_high': 140.50,
@@ -45,6 +47,7 @@ class Command(BaseCommand):
             {
                 'ticker': 'AMZN',
                 'name': 'Amazon.com Inc.',
+                'initial_price': 175.00,
                 'current_price': 175.61,
                 'opening_price': 175.00,
                 'day_high': 176.01,
@@ -54,6 +57,7 @@ class Command(BaseCommand):
             {
                 'ticker': 'MSFT',
                 'name': 'Microsoft Corporation',
+                'initial_price': 378.00,
                 'current_price': 378.91,
                 'opening_price': 378.00,
                 'day_high': 380.25,
@@ -63,6 +67,7 @@ class Command(BaseCommand):
             {
                 'ticker': 'TSLA',
                 'name': 'Tesla Inc.',
+                'initial_price': 242.00,
                 'current_price': 242.84,
                 'opening_price': 242.00,
                 'day_high': 245.50,
@@ -85,4 +90,4 @@ class Command(BaseCommand):
         else:
             self.stdout.write(self.style.WARNING(f'All stocks already exist ({Stock.objects.count()} total)'))
 
-        self.stdout.write(self.style.SUCCESS('🎉Production setup complete!'))
+        self.stdout.write(self.style.SUCCESS('Production setup complete!'))
