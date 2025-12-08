@@ -27,7 +27,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-6jxynsxd=z6bcuf0)p19$u$n26+o%wy_n69943zk_95(x5t1qc'
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-6jxynsxd=z6bcuf0)p19$u$n26+o%wy_n69943zk_95(x5t1qc')
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
@@ -184,6 +185,8 @@ AUTH_USER_MODEL = 'customer.CustomUser'
 LOGIN_URL = '/sign_in/'
 
 LOGIN_REDIRECT_URL = '/role_router/'
+
+LOGOUT_REDIRECT_URL = '/'
 
 # WhiteNoise configuration for serving static files
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'

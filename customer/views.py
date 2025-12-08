@@ -487,8 +487,8 @@ def role_based_redirect(request):
 @login_required
 def sign_out_user(request):
     logout(request)
-    messages.success(request, 'Signed out successfully.')
-    return redirect('sign_in')
+    messages.success(request, 'You have been signed out successfully. Come back soon!')
+    return redirect('home')
 
 
 @api_view(['POST'])
