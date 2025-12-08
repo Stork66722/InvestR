@@ -5,28 +5,463 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>InvestR - Learn Stock Trading Without Risk</title>
-  
-  <!-- External CSS -->
-  <link rel="stylesheet" href="{% static 'css/landing.css' %}" />
+  <style>
+    /* ========== Your existing color scheme ========== */
+    :root {
+      --bg: #0b3d2e;
+      --bg-2: #14532d;
+      --panel: #ffffff;
+      --ink: #1f2937;
+      --muted: #6b7280;
+      --primary: #16a34a;
+      --primary-600: #15803d;
+      --ring: #86efac;
+      --surface: #ecfdf5;
+      --border: #d1fae5;
+    }
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
-  <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon-32x32.png' %}">
-  <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}">
-  <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/apple-touch-icon.png' %}">
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+    }
+
+    html, body { 
+      height: 100%; 
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--ink);
+      background: linear-gradient(135deg, var(--bg) 0%, var(--bg-2) 100%);
+      line-height: 1.6;
+    }
+
+    /* ========== Header / Navigation ========== */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 40px;
+      background: rgba(0,0,0,.2);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(255,255,255,.15);
+    }
+
+    .logo-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-img {
+      height: 80px;
+      width: auto;
+    }
+
+    .brand-name {
+      color: #fff;
+      font-weight: 700;
+      font-size: 1.5rem;
+      letter-spacing: -0.5px;
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn {
+      padding: 10px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all .15s;
+      border: none;
+      font-size: 1rem;
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: #e7fff1;
+      border: 2px solid rgba(255,255,255,.3);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255,255,255,.1);
+      border-color: rgba(255,255,255,.5);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-600);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+    }
+
+    /* ========== Hero Section ========== */
+    .hero {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 80px 40px 60px;
+      text-align: center;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      padding: 8px 16px;
+      background: rgba(255,255,255,.15);
+      border: 1px solid rgba(255,255,255,.25);
+      border-radius: 50px;
+      color: #e7fff1;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+      backdrop-filter: blur(4px);
+    }
+
+    .hero h1 {
+      font-size: 3.5rem;
+      color: white;
+      margin-bottom: 20px;
+      line-height: 1.1;
+      letter-spacing: -1px;
+    }
+
+    .hero-highlight {
+      color: var(--ring);
+      position: relative;
+    }
+
+    .hero p {
+      font-size: 1.3rem;
+      color: rgba(255,255,255,.85);
+      margin-bottom: 40px;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-large {
+      padding: 16px 40px;
+      font-size: 1.1rem;
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: white;
+      border: 2px solid rgba(255,255,255,.4);
+    }
+
+    .btn-outline:hover {
+      background: rgba(255,255,255,.1);
+      border-color: rgba(255,255,255,.6);
+    }
+
+    /* ========== Features Section ========== */
+    .features {
+      max-width: 1200px;
+      margin: 60px auto;
+      padding: 0 40px;
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: 2.5rem;
+      color: white;
+      margin-bottom: 50px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 30px;
+      margin-bottom: 40px;
+    }
+
+    .feature-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.15);
+      transition: transform .15s, box-shadow .15s;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 15px 40px rgba(0,0,0,.25);
+    }
+
+    .feature-icon {
+      font-size: 3rem;
+      margin-bottom: 16px;
+    }
+
+    .feature-card h3 {
+      font-size: 1.4rem;
+      color: var(--ink);
+      margin-bottom: 12px;
+    }
+
+    .feature-card p {
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    /* ========== Screenshot Section ========== */
+    .screenshot {
+      max-width: 1000px;
+      margin: 60px auto;
+      padding: 0 40px;
+      text-align: center;
+    }
+
+    .screenshot-placeholder {
+      background: var(--panel);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 60px 40px;
+      margin-top: 30px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    }
+
+    .screenshot-placeholder p {
+      color: var(--muted);
+      font-size: 1.1rem;
+      margin-bottom: 16px;
+    }
+
+    .screenshot-placeholder .emoji {
+      font-size: 4rem;
+      margin: 20px 0;
+    }
+
+    /* ========== Tech Stack Section ========== */
+    .tech-stack {
+      max-width: 1000px;
+      margin: 60px auto;
+      padding: 40px;
+      text-align: center;
+    }
+
+    .stack-subtitle {
+      color: rgba(255,255,255,.7);
+      font-size: 1.1rem;
+      margin-bottom: 30px;
+    }
+
+    .tech-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 8px 16px;
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.25);
+      border-radius: 8px;
+      color: white;
+      font-size: 0.95rem;
+      font-weight: 600;
+      backdrop-filter: blur(4px);
+    }
+
+    /* ========== About Section ========== */
+    .about {
+      max-width: 800px;
+      margin: 60px auto;
+      padding: 40px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 16px;
+      backdrop-filter: blur(8px);
+    }
+
+    .about h2 {
+      color: white;
+      font-size: 2rem;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .about p {
+      color: rgba(255,255,255,.85);
+      font-size: 1.1rem;
+      line-height: 1.8;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .about-highlight {
+      background: rgba(22, 163, 74, .2);
+      border: 1px solid var(--primary);
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 24px;
+    }
+
+    .about-highlight strong {
+      color: var(--ring);
+      font-size: 1.2rem;
+    }
+
+    /* ========== CTA Section ========== */
+    .cta {
+      max-width: 700px;
+      margin: 80px auto 60px;
+      padding: 50px 40px;
+      text-align: center;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    }
+
+    .cta h2 {
+      font-size: 2.2rem;
+      color: var(--ink);
+      margin-bottom: 20px;
+    }
+
+    .cta p {
+      font-size: 1.1rem;
+      color: var(--muted);
+      margin-bottom: 32px;
+    }
+
+    /* ========== Footer ========== */
+    .footer {
+      border-top: 1px solid rgba(255,255,255,.15);
+      padding: 40px;
+      text-align: center;
+    }
+
+    .footer-content {
+      max-width: 800px;
+      margin: 0 auto;
+      color: rgba(255,255,255,.7);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      color: var(--ring);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color .15s;
+    }
+
+    .footer-links a:hover {
+      color: white;
+      text-decoration: underline;
+    }
+
+    .footer p {
+      font-size: 0.95rem;
+      margin-top: 16px;
+    }
+
+    /* ========== Responsive ========== */
+    @media (max-width: 768px) {
+      .header {
+        padding: 12px 20px;
+      }
+
+      .logo-img {
+        height: 60px;
+      }
+
+      .brand-name {
+        font-size: 1.2rem;
+      }
+
+      .nav-buttons {
+        gap: 8px;
+      }
+
+      .btn {
+        padding: 8px 16px;
+        font-size: 0.9rem;
+      }
+
+      .hero {
+        padding: 50px 20px 40px;
+      }
+
+      .hero h1 {
+        font-size: 2.2rem;
+      }
+
+      .hero p {
+        font-size: 1.1rem;
+      }
+
+      .section-title {
+        font-size: 1.8rem;
+      }
+
+      .features {
+        padding: 0 20px;
+      }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-cta {
+        flex-direction: column;
+      }
+
+      .btn-large {
+        width: 100%;
+      }
+    }
+  </style>
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/apple-touch-icon.png' %}">
 </head>
 <body>
 
-  <!-- Messages (Success/Error notifications) -->
-  {% if messages %}
-    <div class="messages-container">
-      {% for message in messages %}
-        <div class="message {{ message.tags }}">
-          {{ message }}
+   <!-- MESSAGE BLOCK -->
+    {% if messages %}
+        <div class="messages-container">
+            {% for message in messages %}
+                <div class="message {{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
         </div>
-      {% endfor %}
-    </div>
-  {% endif %}
+    {% endif %}
 
   <!-- Header / Navigation -->
   <header class="header">
@@ -148,29 +583,27 @@
       <div class="footer-links">
         <a href="https://github.com/Stork66722/InvestR" target="_blank">GitHub</a>
         <a href="{% url 'sign_in' %}">Sign In</a>
-        <a href="{% url 'register' %}">Sign Up</a>
+        <a href="{% url 'register' %}/">Sign Up</a>
         <a href="mailto:stork66722@gmail.com">Contact</a>
       </div>
       <p>© 2025 InvestR • ASU Capstone Project • Created by Jorge Aguilar, Richard Lahaie, and Summer Olson</p>
       <p style="margin-top: 8px; font-size: 0.85rem;">Educational purposes only. Not real money or financial advice.</p>
     </div>
   </footer>
-
-  <!-- Auto-dismiss messages script -->
   <script>
+    // Auto-dismiss messages after 5 seconds
     document.addEventListener('DOMContentLoaded', function() {
-      const messages = document.querySelectorAll('.message');
-      messages.forEach(function(message) {
-        setTimeout(function() {
-          message.style.transition = 'opacity 0.5s';
-          message.style.opacity = '0';
-          setTimeout(function() {
-            message.remove();
-          }, 500);
-        }, 5000);
-      });
+        const messages = document.querySelectorAll('.message');
+        messages.forEach(function(message) {
+            setTimeout(function() {
+                message.style.transition = 'opacity 0.5s';
+                message.style.opacity = '0';
+                setTimeout(function() {
+                    message.remove();
+                }, 500);
+            }, 5000);
+        });
     });
-  </script>
-
+</script>
 </body>
 </html>
