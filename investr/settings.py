@@ -85,17 +85,14 @@ WSGI_APPLICATION = 'investr.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-if os.environ.get('RDS_HOSTNAME'):
-    # Production - use RDS MySQL
+if os.getenv('DATABASE_URL'):
+    # Production - use Render PostgreSQL
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': os.environ.get('RDS_DB_NAME'),
-            'USER': os.environ.get('RDS_USERNAME'),
-            'PASSWORD': os.environ.get('RDS_PASSWORD'),
-            'HOST': os.environ.get('RDS_HOSTNAME'),
-            'PORT': os.environ.get('RDS_PORT'),
-        }
+        'default': dj_database_url.config(
+            default=os.getenv('DATABASE_URL'),
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
 else:
     # Local development - use SQLite
