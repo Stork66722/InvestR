@@ -69,3 +69,6 @@ Applications/
 .local/
 Web Browsers/
 Adjuster Pro/
+
+# Local environment variables
+.env
