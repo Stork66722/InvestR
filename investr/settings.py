@@ -195,34 +195,18 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Email Configuration
 if DEBUG:
+    # Development - prints emails to console
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 else:
-    email_host = os.getenv('EMAIL_HOST')
+    # Production - use SendGrid Web API (not SMTP)
+    sendgrid_api_key = os.getenv('SENDGRID_API_KEY') or os.getenv('EMAIL_HOST_PASSWORD')
     
-    # DEBUG: Log configuration
-    import sys
-    print("=" * 60, file=sys.stderr)
-    print("EMAIL CONFIGURATION DEBUG", file=sys.stderr)
-    print("=" * 60, file=sys.stderr)
-    print(f"EMAIL_HOST: {email_host}", file=sys.stderr)
-    print(f"EMAIL_PORT: {os.getenv('EMAIL_PORT')}", file=sys.stderr)
-    print(f"EMAIL_HOST_USER: {os.getenv('EMAIL_HOST_USER')}", file=sys.stderr)
-    print(f"HAS EMAIL_HOST_PASSWORD: {bool(os.getenv('EMAIL_HOST_PASSWORD'))}", file=sys.stderr)
-    print(f"DEFAULT_FROM_EMAIL: {os.getenv('DEFAULT_FROM_EMAIL')}", file=sys.stderr)
-    print("=" * 60, file=sys.stderr)
-    
-    if email_host:
-        print(f"✓ Using SMTP backend (SendGrid)", file=sys.stderr)
-        EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-        EMAIL_HOST = email_host
-        EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
-        EMAIL_USE_TLS = True
-        EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
-        EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
-        DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@investr-iklw.onrender.com/')
-        EMAIL_TIMEOUT = 10
+    if sendgrid_api_key:
+        # Use SendGrid Web API (works on Render - no SMTP port blocking)
+        EMAIL_BACKEND = 'investr.sendgrid_backend.SendGridBackend'
+        DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@investr-iklw.onrender.com')
     else:
-        print(f"✗ Using file backend (EMAIL_HOST not set)", file=sys.stderr)
+        # Fallback to file backend
         EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
         EMAIL_FILE_PATH = '/tmp/app-emails'
-        DEFAULT_FROM_EMAIL = 'noreply@investr-iklw.onrender.com/'
+        DEFAULT_FROM_EMAIL = 'noreply@investr-iklw.onrender.com'
