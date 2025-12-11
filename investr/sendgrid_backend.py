@@ -11,6 +11,7 @@ from django.core.mail.backends.base import BaseEmailBackend
 class SendGridBackend(BaseEmailBackend):
     """
     Email backend that uses SendGrid's Web API instead of SMTP.
+    Supports both HTML and plain text emails.
     """
     
     def __init__(self, *args, **kwargs):
@@ -38,13 +39,20 @@ class SendGridBackend(BaseEmailBackend):
                 to_emails = [To(email) for email in message.to]
                 subject = message.subject
                 
-                # Handle both plain text and HTML
-                if message.content_subtype == 'html':
+                # Handle multipart messages (HTML + plain text)
+                if hasattr(message, 'alternatives') and message.alternatives:
+                    # Has HTML alternative
+                    plain_content = Content("text/plain", message.body)
+                    html_content = Content("text/html", message.alternatives[0][0])
+                    mail = Mail(from_email, to_emails[0], subject, plain_content, html_content)
+                elif message.content_subtype == 'html':
+                    # HTML only
                     content = Content("text/html", message.body)
+                    mail = Mail(from_email, to_emails[0], subject, content)
                 else:
+                    # Plain text only
                     content = Content("text/plain", message.body)
-                
-                mail = Mail(from_email, to_emails[0], subject, content)
+                    mail = Mail(from_email, to_emails[0], subject, content)
                 
                 # Add additional recipients
                 if len(to_emails) > 1:
