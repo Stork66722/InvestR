@@ -17,7 +17,7 @@ class SendGridBackend(BaseEmailBackend):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.api_key = os.getenv('SENDGRID_API_KEY') or os.getenv('EMAIL_HOST_PASSWORD')
-        self.default_from = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@investr.com')
+        self.default_from = os.getenv('DEFAULT_FROM_EMAIL', 'investr.sim.noreply@gmail.com')
         
     def send_messages(self, email_messages):
         """

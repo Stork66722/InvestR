@@ -7,10 +7,13 @@
   <title>Shareholder Portfolio</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="{% static 'css/portfolio.css' %}">
-   <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
+  <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
   <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon-32x32.png' %}">
   <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}">
   <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/apple-touch-icon.png' %}">
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body class="portfolio">
   <header class="site-header">
@@ -29,66 +32,88 @@
   </header>
 
   <main class="wrap">
-    <section class="grid">
-      <div class="card">
-        <h2>Portfolio Holdings</h2>
-        <div class="table-wrap">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Stock</th>
-                <th>Ticker</th>
-                <th>Shares</th>
-                <th>Current Price</th>
-                <th>Total Value</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% if positions %}
-                {% for position in positions %}
-                <tr>
-                  <td>{{ position.stock.name }}</td>
-                  <td>{{ position.stock.ticker }}</td>
-                  <td>{{ position.quantity }}</td>
-                  <td>${{ position.stock.current_price|floatformat:2 }}</td>
-                  <td>${{ position.market_value|floatformat:2 }}</td>
-                </tr>
-                {% endfor %}
-              {% else %}
-                <tr>
-                  <td colspan="5">No stock holdings found.</td>
-                </tr>
-              {% endif %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>Asset Growth</h2>
-        <div class="chart">
-          <svg viewBox="0 0 400 220" preserveAspectRatio="none">
-            <rect x="0" y="0" width="400" height="220" class="chart-bg"/>
-            <g stroke="currentColor" opacity="0.12">
-              <line x1="0" y1="180" x2="400" y2="180"/>
-              <line x1="0" y1="140" x2="400" y2="140"/>
-              <line x1="0" y1="100" x2="400" y2="100"/>
-              <line x1="0" y1="60" x2="400" y2="60"/>
-            </g>
-            <polyline class="line"
-              points="10,170 70,150 130,160 190,120 250,130 310,80 370,95"
-              fill="none"/>
-          </svg>
-        </div>
-      </div>
-    </section>
-
+    <!-- Summary Section -->
     <section class="summary">
       <div class="metric"><span>Cash Balance:</span> <strong>${{ account.cash_balance|default:"0.00"|floatformat:2|intcomma }}</strong></div>
       <div class="metric"><span>Total Portfolio Value:</span> <strong>${{ total_market_value|default:"0.00"|floatformat:2|intcomma }}</strong></div>
       <div class="metric"><span>Overall Account Value:</span> <strong>${{ total_equity|default:"0.00"|floatformat:2|intcomma }}</strong></div>
     </section>
 
+    <!-- Time Range Selector -->
+    <div class="time-range-selector">
+      <button class="time-btn" data-days="1">1D</button>
+      <button class="time-btn active" data-days="7">1W</button>
+      <button class="time-btn" data-days="30">1M</button>
+      <button class="time-btn" data-days="365">1Y</button>
+      <button class="time-btn" data-days="all">ALL</button>
+    </div>
+
+    <!-- Charts Section -->
+    <section class="grid charts-grid">
+      <!-- Portfolio Value Chart (Replaces static SVG) -->
+      <div class="card chart-card">
+        <h2>Portfolio Value Over Time</h2>
+        <div class="chart">
+          <canvas id="portfolioChart"></canvas>
+          <div id="noDataMessage" class="no-data-msg" style="display: none;">
+            <p>📊 No portfolio history yet. Make some trades to see your performance!</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stock Performance Chart -->
+      <div class="card chart-card">
+        <h2>Stock Performance</h2>
+        <div class="chart">
+          <canvas id="performanceChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Portfolio Allocation Chart -->
+    <section class="card chart-card-full">
+      <h2>Portfolio Allocation</h2>
+      <div class="chart chart-pie">
+        <canvas id="allocationChart"></canvas>
+      </div>
+    </section>
+
+    <!-- Portfolio Holdings Table -->
+    <section class="card">
+      <h2>Portfolio Holdings</h2>
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Stock</th>
+              <th>Ticker</th>
+              <th>Shares</th>
+              <th>Current Price</th>
+              <th>Total Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if positions %}
+              {% for position in positions %}
+              <tr>
+                <td>{{ position.stock.name }}</td>
+                <td>{{ position.stock.ticker }}</td>
+                <td>{{ position.quantity }}</td>
+                <td>${{ position.stock.current_price|floatformat:2 }}</td>
+                <td>${{ position.market_value|floatformat:2 }}</td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="5">No stock holdings found.</td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Recent Activity Table -->
     <section class="card">
       <h2>Recent Activity</h2>
       <div class="table-wrap">
@@ -129,5 +154,204 @@
       </div>
     </section>
   </main>
+
+  <script>
+    // Chart instances
+    let portfolioChart, performanceChart, allocationChart;
+    let currentDays = 7;
+
+    // Fetch and render charts
+    async function loadChartData(days = 7) {
+      try {
+        const response = await fetch(`/api/v1/portfolio/chart-data/?days=${days}`);
+        const data = await response.json();
+
+        if (!data.has_data || data.portfolio_history.labels.length === 0) {
+          document.getElementById('noDataMessage').style.display = 'block';
+          document.querySelector('#portfolioChart').style.display = 'none';
+          return;
+        } else {
+          document.getElementById('noDataMessage').style.display = 'none';
+          document.querySelector('#portfolioChart').style.display = 'block';
+        }
+
+        renderPortfolioChart(data.portfolio_history);
+        renderPerformanceChart(data.stock_performance);
+        renderAllocationChart(data.stock_allocation);
+
+      } catch (error) {
+        console.error('Error loading chart data:', error);
+        document.getElementById('noDataMessage').style.display = 'block';
+        document.querySelector('#portfolioChart').style.display = 'none';
+      }
+    }
+
+    function renderPortfolioChart(history) {
+      const ctx = document.getElementById('portfolioChart');
+      
+      if (portfolioChart) {
+        portfolioChart.destroy();
+      }
+
+      portfolioChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: history.labels,
+          datasets: [{
+            label: 'Total Value',
+            data: history.values,
+            borderColor: '#16a34a',
+            backgroundColor: 'rgba(22, 163, 74, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false,
+              callbacks: {
+                label: function(context) {
+                  return `Value: $${context.parsed.y.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: false,
+              ticks: {
+                callback: function(value) {
+                  return '$' + value.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function renderPerformanceChart(performance) {
+      const ctx = document.getElementById('performanceChart');
+      
+      if (performanceChart) {
+        performanceChart.destroy();
+      }
+
+      const colors = performance.map(stock => stock.gain_loss >= 0 ? '#16a34a' : '#ef4444');
+
+      performanceChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: performance.map(s => s.ticker),
+          datasets: [{
+            label: 'Gain/Loss ($)',
+            data: performance.map(s => s.gain_loss),
+            backgroundColor: colors,
+            borderColor: colors,
+            borderWidth: 1,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const stock = performance[context.dataIndex];
+                  return [
+                    `Gain/Loss: $${stock.gain_loss.toFixed(2)}`,
+                    `Return: ${stock.gain_loss_pct.toFixed(2)}%`
+                  ];
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return '$' + value.toFixed(0);
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function renderAllocationChart(allocation) {
+      const ctx = document.getElementById('allocationChart');
+      
+      if (allocationChart) {
+        allocationChart.destroy();
+      }
+
+      const colors = [
+        '#16a34a', '#10b981', '#14b8a6', '#06b6d4', '#0ea5e9',
+        '#3b82f6', '#6366f1', '#8b5cf6', '#a855f7', '#d946ef'
+      ];
+
+      allocationChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: allocation.map(s => s.ticker),
+          datasets: [{
+            data: allocation.map(s => s.value),
+            backgroundColor: colors.slice(0, allocation.length),
+            borderWidth: 2,
+            borderColor: '#ffffff',
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right',
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const value = context.parsed;
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const percentage = ((value / total) * 100).toFixed(1);
+                  return `${context.label}: $${value.toFixed(2)} (${percentage}%)`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Time range selector
+    document.querySelectorAll('.time-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        
+        const days = this.dataset.days === 'all' ? 3650 : parseInt(this.dataset.days);
+        currentDays = days;
+        loadChartData(days);
+      });
+    });
+
+    // Load initial data
+    loadChartData(currentDays);
+  </script>
 </body>
 </html>

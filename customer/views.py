@@ -113,7 +113,11 @@ class BrokerageAccountViewSet(viewsets.ReadOnlyModelViewSet):
             transaction_type='STOCK_TRADE',
             amount=total
         )
-        
+        try:
+            create_portfolio_snapshot(account)
+        except Exception as e:
+            print(f"Failed to create snapshot: {e}")
+    
         return Response({
             "message": f"Bought {qty} shares of {stock.ticker} at ${price}",
             "new_cash": str(account.cash_balance)
@@ -157,7 +161,11 @@ class BrokerageAccountViewSet(viewsets.ReadOnlyModelViewSet):
             transaction_type='SELL',
             amount=total
         )
-        
+        try:
+            create_portfolio_snapshot(account)
+        except Exception as e:
+            print(f"Failed to create snapshot: {e}")
+            
         return Response({
             "message": f"Sold {qty} shares of {stock.ticker} at ${price}",
             "new_cash": str(account.cash_balance)
@@ -593,3 +601,136 @@ def admin_generate_prices(request):
         return JsonResponse({
             'error': f'Failed to generate prices: {str(e)}'
         }, status=500)
+    
+def create_portfolio_snapshot(account):
+    """Helper to create portfolio snapshot"""
+    from customer.models import PortfolioSnapshot
+    from decimal import Decimal
+    
+    trades = Trade.objects.filter(order__account=account)
+    holdings = {}
+    
+    for trade in trades:
+        ticker = trade.order.stock.ticker
+        if ticker not in holdings:
+            holdings[ticker] = {'shares': 0, 'current_price': trade.order.stock.current_price}
+        
+        if trade.order.action == 'BUY':
+            holdings[ticker]['shares'] += trade.executed_qty
+        else:  # SELL
+            holdings[ticker]['shares'] -= trade.executed_qty
+    
+    holdings_value = Decimal('0')
+    for ticker, data in holdings.items():
+        if data['shares'] > 0:
+            holdings_value += data['shares'] * data['current_price']
+    
+    account.refresh_from_db()
+    total_value = account.cash_balance + holdings_value
+    
+    snapshot = PortfolioSnapshot.objects.create(
+        account=account,
+        total_value=total_value,
+        cash_balance=account.cash_balance,
+        holdings_value=holdings_value
+    )
+    
+    return snapshot
+
+
+@login_required
+def portfolio_chart_data(request):
+    """API endpoint for portfolio chart data"""
+    from customer.models import PortfolioSnapshot
+    from datetime import datetime, timedelta
+    from decimal import Decimal
+    
+    user = request.user
+    
+    try:
+        account = BrokerageAccount.objects.get(user=user)
+    except BrokerageAccount.DoesNotExist:
+        return JsonResponse({'error': 'Account not found'}, status=404)
+    
+    days = int(request.GET.get('days', 30))
+    start_date = datetime.now() - timedelta(days=days)
+    
+    snapshots = PortfolioSnapshot.objects.filter(
+        account=account,
+        snapshot_date__gte=start_date
+    ).order_by('snapshot_date')
+    
+    portfolio_history = {
+        'labels': [s.snapshot_date.strftime('%b %d, %H:%M') for s in snapshots],
+        'values': [float(s.total_value) for s in snapshots],
+        'cash': [float(s.cash_balance) for s in snapshots],
+        'holdings': [float(s.holdings_value) for s in snapshots],
+    }
+    
+    trades = Trade.objects.filter(order__account=account)
+    holdings = {}
+    
+    for trade in trades:
+        ticker = trade.order.stock.ticker
+        if ticker not in holdings:
+            holdings[ticker] = {
+                'shares': 0,
+                'total_cost': Decimal('0'),
+                'current_price': trade.order.stock.current_price,
+                'stock_name': trade.order.stock.name,
+            }
+        
+        if trade.order.action == 'BUY':
+            holdings[ticker]['shares'] += trade.executed_qty
+            holdings[ticker]['total_cost'] += trade.executed_qty * trade.executed_price
+        else:  # SELL
+            holdings[ticker]['shares'] -= trade.executed_qty
+            holdings[ticker]['total_cost'] -= trade.executed_qty * trade.executed_price
+    
+    holdings = {k: v for k, v in holdings.items() if v['shares'] > 0}
+    
+    stock_performance = []
+    stock_allocation = []
+    
+    for ticker, data in holdings.items():
+        current_value = data['shares'] * data['current_price']
+        cost_basis = data['total_cost']
+        gain_loss = current_value - cost_basis
+        gain_loss_pct = (gain_loss / cost_basis * 100) if cost_basis > 0 else 0
+        
+        stock_performance.append({
+            'ticker': ticker,
+            'name': data['stock_name'],
+            'shares': int(data['shares']),
+            'current_value': float(current_value),
+            'cost_basis': float(cost_basis),
+            'gain_loss': float(gain_loss),
+            'gain_loss_pct': float(gain_loss_pct),
+        })
+        
+        stock_allocation.append({
+            'ticker': ticker,
+            'name': data['stock_name'],
+            'value': float(current_value),
+        })
+    
+    total_holdings_value = sum(s['value'] for s in stock_allocation)
+    
+    if account.cash_balance > 0:
+        stock_allocation.append({
+            'ticker': 'CASH',
+            'name': 'Cash',
+            'value': float(account.cash_balance),
+        })
+    
+    total_portfolio_value = total_holdings_value + float(account.cash_balance)
+    
+    return JsonResponse({
+        'portfolio_history': portfolio_history,
+        'stock_performance': stock_performance,
+        'stock_allocation': stock_allocation,
+        'total_value': float(total_portfolio_value),
+        'total_holdings': float(total_holdings_value),
+        'cash_balance': float(account.cash_balance),
+        'has_data': len(snapshots) > 0,
+    })

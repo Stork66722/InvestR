@@ -173,3 +173,45 @@ class MarketSchedule(models.Model):
     
     def __str__(self):
         return f"Market {self.Status} ({self.OpenHour}:{self.OpenMinute:02d} - {self.CloseHour}:{self.CloseMinute:02d})"
+    
+class PortfolioSnapshot(models.Model):
+    """
+    Tracks portfolio value at different points in time for charting.
+    Created whenever a trade is executed or daily at market close.
+    """
+    account = models.ForeignKey(
+        'BrokerageAccount',
+        on_delete=models.CASCADE,
+        related_name='snapshots',
+        db_column='AccountID'
+    )
+    snapshot_date = models.DateTimeField(
+        auto_now_add=True,
+        db_column='SnapshotDate'
+    )
+    total_value = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        db_column='TotalValue',
+        help_text='Cash + Stock Holdings Value'
+    )
+    cash_balance = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        db_column='CashBalance'
+    )
+    holdings_value = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        db_column='HoldingsValue'
+    )
+    
+    class Meta:
+        db_table = 'PortfolioSnapshot'
+        ordering = ['-snapshot_date']
+        indexes = [
+            models.Index(fields=['account', '-snapshot_date']),
+        ]
+    
+    def __str__(self):
+        return f"{self.account.user.UserName} - ${self.total_value} on {self.snapshot_date.date()}"

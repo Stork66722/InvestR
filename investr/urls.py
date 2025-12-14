@@ -13,6 +13,7 @@ from customer.views import (
     role_based_redirect, sign_out_user, admin_create_stock_api, admin_update_market_hours, 
     get_market_status_api, admin_generate_prices,
     landing_page,
+    portfolio_chart_data,
 )
 
 router = DefaultRouter()
@@ -56,22 +57,25 @@ urlpatterns = [
     # Market status API (available to all authenticated users)
     path('api/v1/market-status/', get_market_status_api, name='api_market_status'),
 
+    # Portfolio chart data API
+    path('api/v1/portfolio/chart-data/', portfolio_chart_data, name='portfolio_chart_data'),
+
     # Password Reset URLs
-path('password_reset/', auth_views.PasswordResetView.as_view(
-        template_name='customer/password_reset.html',
-        form_class=HTMLPasswordResetForm,
-        html_email_template_name='registration/password_reset_email.html'),
-     name='password_reset'),
+    path('password_reset/', auth_views.PasswordResetView.as_view(
+            template_name='customer/password_reset.html',
+            form_class=HTMLPasswordResetForm,
+            html_email_template_name='registration/password_reset_email.html'),
+        name='password_reset'),
 
-path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(
-         template_name='customer/password_reset_done.html'), 
-     name='password_reset_done'),
+    path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(
+            template_name='customer/password_reset_done.html'), 
+        name='password_reset_done'),
 
-path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(
-         template_name='customer/password_reset_confirm.html'), 
-     name='password_reset_confirm'),
+    path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(
+            template_name='customer/password_reset_confirm.html'), 
+        name='password_reset_confirm'),
 
-path('reset/done/', auth_views.PasswordResetCompleteView.as_view(
-         template_name='customer/password_reset_complete.html'), 
-     name='password_reset_complete'),
+    path('reset/done/', auth_views.PasswordResetCompleteView.as_view(
+            template_name='customer/password_reset_complete.html'), 
+        name='password_reset_complete'),
 ]
