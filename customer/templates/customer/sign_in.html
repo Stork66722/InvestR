@@ -3,43 +3,143 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Sign In</title>
-    <link rel="stylesheet" href="{% static 'css/sign_in.css' %}" />
-     <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
-  <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon-32x32.png' %}">
-  <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}">
-  <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/apple-touch-icon.png' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sign In - InvestR</title>
+    <link rel="stylesheet" href="{% static 'css/auth.css' %}" />
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/apple-touch-icon.png' %}">
 </head>
 <body>
-    <div class="page">
-        <div class="container">
-            <h2>Sign In</h2>
-
-            {% if messages %}
-                {% for message in messages %}
-                <div class="message {{ message.tags }}">
-                    {{ message }}
+    <div class="auth-page">
+        <!-- Left Side: Form -->
+        <div class="auth-container">
+            <div class="auth-card">
+                <!-- Logo -->
+                <div class="auth-logo">
+                    <img src="{% static 'images/logo_investr.png' %}" alt="InvestR Logo" />
                 </div>
-                {% endfor %}
-            {% endif %}
 
-            <form method="post" action="{% url 'sign_in' %}">
-                
-                {% csrf_token %} 
-                <input type="text" name="username" placeholder="Username" required>
-                <input type="password" name="password" placeholder="Password" required>
+                <!-- Title -->
+                <h1 class="auth-title">Welcome Back</h1>
+                <p class="auth-subtitle">Sign in to your InvestR account</p>
 
-                <button type="submit">Sign in</button>
-                
-                <div class="actions">
-                    <a href="{% url 'password_reset' %}">Forgot Password?</a>
+                <!-- Messages -->
+                {% if messages %}
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                {% endif %}
+
+                <!-- Sign In Form -->
+                <form method="post" action="{% url 'sign_in' %}" class="auth-form" id="signInForm">
+                    {% csrf_token %}
+
+                    <!-- Username Field -->
+                    <div class="form-group">
+                        <label for="username">Username or Email</label>
+                        <input 
+                            type="text" 
+                            id="username"
+                            name="username" 
+                            placeholder="Enter your username" 
+                            required 
+                            autofocus
+                        />
+                    </div>
+
+                    <!-- Password Field with Toggle -->
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <div class="password-input-wrapper">
+                            <input 
+                                type="password" 
+                                id="password"
+                                name="password" 
+                                placeholder="Enter your password" 
+                                required 
+                            />
+                            <button type="button" class="password-toggle" aria-label="Toggle password visibility">
+                                <svg class="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                                <svg class="eye-off-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="display: none;">
+                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Remember Me & Forgot Password -->
+                    <div class="form-options">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="remember" />
+                            <span>Remember me</span>
+                        </label>
+                        <a href="{% url 'password_reset' %}" class="forgot-link">Forgot password?</a>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn btn-primary btn-loading">
+                        <span class="btn-text">Sign In</span>
+                        <span class="btn-loader" style="display: none;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <circle cx="12" cy="12" r="10" stroke-width="3" stroke-dasharray="31.4 31.4" stroke-linecap="round">
+                                    <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/>
+                                </circle>
+                            </svg>
+                        </span>
+                    </button>
+                </form>
+
+                <!-- Sign Up Link -->
+                <div class="auth-footer">
+                    <p>Don't have an account? <a href="{% url 'register' %}">Sign Up</a></p>
                 </div>
-            </form>
+            </div>
+        </div>
 
-            <div class="signup-link">
-                Don’t have an account? <a href="{% url 'register' %}">Sign up</a>
+        <!-- Right Side: Hero Image -->
+        <div class="auth-hero">
+            <div class="hero-content">
+                <h2>Start Trading Smart</h2>
+                <p>Join thousands of investors building their portfolio with InvestR</p>
             </div>
         </div>
     </div>
+
+    <script>
+        // Password toggle
+        document.querySelectorAll('.password-toggle').forEach(button => {
+            button.addEventListener('click', function() {
+                const wrapper = this.closest('.password-input-wrapper');
+                const input = wrapper.querySelector('input');
+                const eyeIcon = this.querySelector('.eye-icon');
+                const eyeOffIcon = this.querySelector('.eye-off-icon');
+                
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    eyeIcon.style.display = 'none';
+                    eyeOffIcon.style.display = 'block';
+                } else {
+                    input.type = 'password';
+                    eyeIcon.style.display = 'block';
+                    eyeOffIcon.style.display = 'none';
+                }
+            });
+        });
+
+        // Loading state on submit
+        document.getElementById('signInForm').addEventListener('submit', function() {
+            const button = this.querySelector('.btn-loading');
+            button.classList.add('loading');
+            button.disabled = true;
+        });
+    </script>
 </body>
 </html>

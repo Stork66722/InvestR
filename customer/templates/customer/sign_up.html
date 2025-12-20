@@ -2,85 +2,186 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Create Your Account</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="{% static 'css/sign_up.css' %}" />
-   <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
-  <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon-32x32.png' %}">
-  <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}">
-  <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/apple-touch-icon.png' %}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sign Up - InvestR</title>
+    <link rel="stylesheet" href="{% static 'css/auth.css' %}" />
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/apple-touch-icon.png' %}">
 </head>
 <body>
-  <header class="site-header">
-    <img src="{% static 'images/logo_investr.png' %}" alt="InvestR.io Logo" class="site-logo">
-  </header>
-  <div class="page">
-    <div class="container">
-      <h2>Create your account</h2>
+    <div class="auth-page">
+        <!-- Left Side: Form -->
+        <div class="auth-container">
+            <div class="auth-card">
+                <!-- Logo -->
+                <div class="auth-logo">
+                    <img src="{% static 'images/logo_investr.png' %}" alt="InvestR Logo" />
+                </div>
 
-      {% if form.non_field_errors %}
-          {% for error in form.non_field_errors %}
-              <div class="error">{{ error }}</div>
-          {% endfor %}
-      {% endif %}
+                <!-- Title -->
+                <h1 class="auth-title">Create Account</h1>
+                <p class="auth-subtitle">Start your investment journey today</p>
 
-      <form method="post" action="{% url 'register' %}">
-        {% csrf_token %} 
-        
-        <div class="field-wrapper">
-            {{ form.FullName.errors }}
-            <input type="text" 
-                   name="{{ form.FullName.name }}" 
-                   placeholder="Full Name" 
-                   value="{{ form.FullName.value|default:'' }}" 
-                   required />
-        </div>
-        
-        <div class="field-wrapper">
-            {{ form.email.errors }}
-            <input type="email" 
-                   name="{{ form.email.name }}" 
-                   placeholder="Email Address" 
-                   value="{{ form.email.value|default:'' }}" 
-                   required />
-        </div>
-        
-        <div class="field-wrapper">
-            {{ form.UserName.errors }}
-            <input type="text" 
-                   name="{{ form.UserName.name }}" 
-                   placeholder="Username" 
-                   value="{{ form.UserName.value|default:'' }}" 
-                   required />
-        </div>
-        
-        <div class="field-wrapper">
-            {{ form.password.errors }}
-            <input type="password" 
-                   name="{{ form.password.name }}" 
-                   placeholder="Password" 
-                   required />
-        </div>
-        
-        <div class="field-wrapper">
-            {{ form.password2.errors }}
-            <input type="password" 
-                   name="{{ form.password2.name }}" 
-                   placeholder="Confirm Password" 
-                   required />
-        </div>
-        
-        <button type="submit">Sign Up</button>
-      </form>
+                <!-- Error Messages -->
+                {% if form.non_field_errors %}
+                    {% for error in form.non_field_errors %}
+                    <div class="alert alert-error">
+                        {{ error }}
+                    </div>
+                    {% endfor %}
+                {% endif %}
 
-      <div class="signup-link">
-        Already have an account? <a href="{% url 'sign_in' %}">Sign In</a>
-      </div>
+                <!-- Sign Up Form -->
+                <form method="post" action="{% url 'register' %}" class="auth-form" id="signUpForm">
+                    {% csrf_token %}
+
+                    <!-- Full Name -->
+                    <div class="form-group">
+                        <label for="fullName">Full Name</label>
+                        {{ form.FullName.errors }}
+                        <input 
+                            type="text" 
+                            id="fullName"
+                            name="{{ form.FullName.name }}" 
+                            placeholder="John Doe" 
+                            value="{{ form.FullName.value|default:'' }}"
+                            required 
+                            autofocus
+                        />
+                    </div>
+
+                    <!-- Email -->
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        {{ form.email.errors }}
+                        <input 
+                            type="email" 
+                            id="email"
+                            name="{{ form.email.name }}" 
+                            placeholder="john@example.com" 
+                            value="{{ form.email.value|default:'' }}"
+                            required 
+                        />
+                    </div>
+
+                    <!-- Username -->
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        {{ form.UserName.errors }}
+                        <input 
+                            type="text" 
+                            id="username"
+                            name="{{ form.UserName.name }}" 
+                            placeholder="johndoe" 
+                            value="{{ form.UserName.value|default:'' }}"
+                            required 
+                        />
+                    </div>
+
+                    <!-- Password with Strength Meter -->
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        {{ form.password.errors }}
+                        <div class="password-input-wrapper">
+                            <input 
+                                type="password" 
+                                id="password"
+                                name="{{ form.password.name }}" 
+                                placeholder="Create a strong password" 
+                                required 
+                            />
+                            <button type="button" class="password-toggle" aria-label="Toggle password visibility">
+                                <svg class="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                                <svg class="eye-off-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="display: none;">
+                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="password-strength" id="passwordStrength" style="display: none;">
+                            <div class="strength-bar">
+                                <div class="strength-fill"></div>
+                            </div>
+                            <span class="strength-text">Weak</span>
+                        </div>
+                        <p class="field-hint">Must be at least 8 characters with letters and numbers</p>
+                    </div>
+
+                    <!-- Confirm Password -->
+                    <div class="form-group">
+                        <label for="password2">Confirm Password</label>
+                        {{ form.password2.errors }}
+                        <div class="password-input-wrapper">
+                            <input 
+                                type="password" 
+                                id="password2"
+                                name="{{ form.password2.name }}" 
+                                placeholder="Re-enter your password" 
+                                required 
+                            />
+                            <button type="button" class="password-toggle" aria-label="Toggle password visibility">
+                                <svg class="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                                <svg class="eye-off-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="display: none;">
+                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                                </svg>
+                            </button>
+                        </div>
+                        <p class="field-hint match-hint" id="matchHint" style="display: none;"></p>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn btn-primary btn-loading">
+                        <span class="btn-text">Create Account</span>
+                        <span class="btn-loader" style="display: none;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <circle cx="12" cy="12" r="10" stroke-width="3" stroke-dasharray="31.4 31.4" stroke-linecap="round">
+                                    <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/>
+                                </circle>
+                            </svg>
+                        </span>
+                    </button>
+                </form>
+
+                <!-- Sign In Link -->
+                <div class="auth-footer">
+                    <p>Already have an account? <a href="{% url 'sign_in' %}">Sign In</a></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side: Hero Image -->
+        <div class="auth-hero">
+            <div class="hero-content">
+                <h2>Join InvestR Today</h2>
+                <p>Practice trading with virtual money. Build your skills. Track your progress.</p>
+                <div class="hero-features">
+                    <div class="feature">
+                        <span class="feature-icon">📈</span>
+                        <span>Real-time Portfolio Tracking</span>
+                    </div>
+                    <div class="feature">
+                        <span class="feature-icon">💰</span>
+                        <span>Virtual Trading Experience</span>
+                    </div>
+                    <div class="feature">
+                        <span class="feature-icon">📊</span>
+                        <span>Interactive Charts & Analytics</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="hero-image" aria-hidden="true"></div>
-  </div>
+    <script src="{% static 'js/auth.js' %}"></script>
 </body>
 </html>
-

@@ -1,0 +1,554 @@
+/* ========== InvestR Authentication Pages ========== */
+
+:root {
+  --bg: #0b3d2e;
+  --bg-2: #14532d;
+  --panel: #ffffff;
+  --ink: #1f2937;
+  --ink-light: #374151;
+  --muted: #6b7280;
+  --muted-light: #9ca3af;
+  --primary: #16a34a;
+  --primary-hover: #15803d;
+  --primary-light: #22c55e;
+  --ring: #86efac;
+  --surface: #ecfdf5;
+  --border: #e5e7eb;
+  --border-focus: #d1fae5;
+  --error: #ef4444;
+  --error-bg: #fee2e2;
+  --error-border: #fecaca;
+  --success: #10b981;
+  --success-bg: #d1fae5;
+  --success-border: #a7f3d0;
+}
+
+/* ========== Reset & Base ========== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+}
+
+body {
+  color: var(--ink);
+  background: linear-gradient(135deg, var(--bg) 0%, var(--bg-2) 100%);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ========== Page Layout ========== */
+.auth-page {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ========== Left Side: Form Container ========== */
+.auth-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--panel);
+  padding: 48px 40px;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ========== Logo ========== */
+.auth-logo {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.auth-logo img {
+  height: 60px;
+  width: auto;
+}
+
+/* ========== Title & Subtitle ========== */
+.auth-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 8px 0;
+  text-align: center;
+  letter-spacing: -0.5px;
+}
+
+.auth-subtitle {
+  font-size: 15px;
+  color: var(--muted);
+  margin: 0 0 32px 0;
+  text-align: center;
+}
+
+/* ========== Alerts/Messages ========== */
+.alert {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.alert-success {
+  background: var(--success-bg);
+  color: #065f46;
+  border: 1px solid var(--success-border);
+}
+
+.alert-error {
+  background: var(--error-bg);
+  color: #991b1b;
+  border: 1px solid var(--error-border);
+}
+
+.alert-info {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+}
+
+/* ========== Form ========== */
+.auth-form {
+  width: 100%;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-light);
+  margin-bottom: 8px;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="password"] {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 15px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  background: white;
+  color: var(--ink);
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.form-group input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--ring);
+}
+
+.form-group input::placeholder {
+  color: var(--muted-light);
+}
+
+/* ========== Password Input with Toggle ========== */
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-wrapper input {
+  padding-right: 48px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  transition: color 0.2s;
+}
+
+.password-toggle:hover {
+  color: var(--ink);
+}
+
+.password-toggle svg {
+  stroke-width: 2;
+}
+
+/* ========== Password Strength Meter ========== */
+.password-strength {
+  margin-top: 8px;
+}
+
+.strength-bar {
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.strength-fill {
+  height: 100%;
+  width: 0%;
+  transition: all 0.3s ease;
+  border-radius: 2px;
+}
+
+.strength-fill.weak {
+  width: 33%;
+  background: var(--error);
+}
+
+.strength-fill.medium {
+  width: 66%;
+  background: #f59e0b;
+}
+
+.strength-fill.strong {
+  width: 100%;
+  background: var(--success);
+}
+
+.strength-text {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.strength-text.weak {
+  color: var(--error);
+}
+
+.strength-text.medium {
+  color: #f59e0b;
+}
+
+.strength-text.strong {
+  color: var(--success);
+}
+
+/* ========== Field Hints ========== */
+.field-hint {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+.match-hint {
+  font-weight: 500;
+}
+
+.match-hint.match {
+  color: var(--success);
+}
+
+.match-hint.no-match {
+  color: var(--error);
+}
+
+/* ========== Form Options (Remember Me & Forgot Password) ========== */
+.form-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  font-size: 14px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: var(--ink-light);
+  font-weight: 500;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--primary);
+}
+
+.forgot-link {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s;
+}
+
+.forgot-link:hover {
+  color: var(--primary-hover);
+  text-decoration: underline;
+}
+
+/* ========== Buttons ========== */
+.btn {
+  width: 100%;
+  padding: 14px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+  box-shadow: 0 2px 4px rgba(22, 163, 74, 0.2);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* ========== Loading State ========== */
+.btn-loading.loading .btn-text {
+  visibility: hidden;
+}
+
+.btn-loading.loading .btn-loader {
+  display: block !important;
+  position: absolute;
+}
+
+.btn-loader svg {
+  stroke-width: 3;
+}
+
+/* ========== Footer Link ========== */
+.auth-footer {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.auth-footer a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s;
+}
+
+.auth-footer a:hover {
+  color: var(--primary-hover);
+  text-decoration: underline;
+}
+
+/* ========== Right Side: Hero ========== */
+.auth-hero {
+  flex: 1;
+  background: linear-gradient(135deg, rgba(11, 61, 46, 0.95) 0%, rgba(20, 83, 45, 0.95) 100%),
+              url('../images/canva_stock_signup.jpg') center/cover no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+  position: relative;
+}
+
+.auth-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top right, rgba(134, 239, 172, 0.1) 0%, transparent 60%);
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  color: white;
+  max-width: 500px;
+}
+
+.hero-content h2 {
+  font-size: 42px;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+  line-height: 1.2;
+  letter-spacing: -1px;
+}
+
+.hero-content p {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0 0 40px 0;
+  line-height: 1.6;
+}
+
+/* ========== Hero Features ========== */
+.hero-features {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.feature {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.feature:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateX(8px);
+}
+
+.feature-icon {
+  font-size: 32px;
+  flex-shrink: 0;
+}
+
+.feature span:last-child {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* ========== Django Form Errors ========== */
+.errorlist {
+  list-style: none;
+  padding: 0;
+  margin: 6px 0 0 0;
+}
+
+.errorlist li {
+  color: var(--error);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* ========== Responsive Design ========== */
+@media (max-width: 1024px) {
+  .auth-page {
+    flex-direction: column;
+  }
+
+  .auth-hero {
+    min-height: 300px;
+    padding: 40px 20px;
+  }
+
+  .hero-content h2 {
+    font-size: 32px;
+  }
+
+  .hero-content p {
+    font-size: 16px;
+    margin-bottom: 24px;
+  }
+
+  .hero-features {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .auth-card {
+    padding: 32px 24px;
+  }
+
+  .auth-logo img {
+    height: 50px;
+  }
+
+  .auth-title {
+    font-size: 24px;
+  }
+
+  .auth-subtitle {
+    font-size: 14px;
+  }
+
+  .form-options {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .hero-content h2 {
+    font-size: 28px;
+  }
+
+  .auth-hero {
+    min-height: 250px;
+    padding: 30px 20px;
+  }
+}
+
+/* ========== Animations ========== */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.auth-card {
+  animation: slideIn 0.4s ease-out;
+}
+
+/* ========== Focus Visible (Accessibility) ========== */
+*:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+button:focus-visible {
+  outline-offset: 4px;
+}
