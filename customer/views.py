@@ -1,7 +1,7 @@
 import json
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth import logout
+from django.contrib.auth import logout, login, authenticate
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.db import transaction
@@ -15,7 +15,7 @@ from .utils import is_market_open, get_market_status
 from django.core.management import call_command
 import io
 import sys
-
+from customer.models import CustomUser
 from .models import BrokerageAccount, CustomUser, Transaction, Stock, Order, Trade, Position
 from .serializers import (
     BrokerageAccountSerializer, TransactionSerializer, StockSerializer, 
@@ -498,6 +498,55 @@ def sign_out_user(request):
     messages.success(request, 'You have been signed out successfully. Come back soon!')
     return redirect('home')
 
+def custom_login_view(request):
+    """
+    Custom login view with Remember Me functionality.
+    - If 'remember' is checked: session lasts 2 weeks
+    - If not checked: session expires when browser closes
+    """
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        remember = request.POST.get('remember')
+        
+        # Try to get user by UserName or email
+        try:
+            user_obj = CustomUser.objects.filter(UserName=username).first()
+            if not user_obj:
+                user_obj = CustomUser.objects.filter(email=username).first()
+            
+            if user_obj:
+                user = authenticate(request, username=user_obj.UserName, password=password)
+            else:
+                user = None
+        except Exception as e:
+            user = None
+        
+        if user is not None:
+            login(request, user)
+            
+            # Handle Remember Me checkbox
+            if remember == "on":
+                # Session lasts for 2 weeks
+                request.session.set_expiry(1209600)  # 14 days in seconds
+                # IMPORTANT: Set the session to be saved permanently (not expire on browser close)
+                request.session.modified = True
+                # Force the cookie to persist
+                request.session.save()
+            else:
+                # Session expires when browser closes
+                request.session.set_expiry(0)
+            
+            # Redirect based on role
+            if user.is_staff or user.is_superuser:
+                return redirect('admin_dashboard')
+            else:
+                return redirect('portfolio')
+        else:
+            messages.error(request, 'Invalid username or password.')
+            return render(request, 'customer/sign_in.html')
+    
+    return render(request, 'customer/sign_in.html')
 
 @api_view(['POST'])
 @permission_classes([permissions.IsAdminUser])

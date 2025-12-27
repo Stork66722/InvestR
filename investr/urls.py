@@ -12,8 +12,7 @@ from customer.views import (
     admin_change_market_hours_view, admin_create_stock_view,
     role_based_redirect, sign_out_user, admin_create_stock_api, admin_update_market_hours, 
     get_market_status_api, admin_generate_prices,
-    landing_page,
-    portfolio_chart_data,
+    landing_page, portfolio_chart_data, custom_login_view,
 )
 
 router = DefaultRouter()
@@ -28,7 +27,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('sign_in/', auth_views.LoginView.as_view(template_name='customer/sign_in.html'), name='sign_in'),
+    path('sign_in/', custom_login_view, name='sign_in'),
     path('sign_out/', sign_out_user, name='sign_out'),
     path('sign_up/', register_user, name='register'),
     path("api/v1/", include(router.urls)),

@@ -151,6 +151,7 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'customer', 'static'),  # Path to customer/static/
 ]
 
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -210,3 +211,26 @@ else:
         EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
         EMAIL_FILE_PATH = '/tmp/app-emails'
         DEFAULT_FROM_EMAIL = 'noreply@investr-iklw.onrender.com'
+
+# Session Config
+
+# Default session age (2 weeks)
+SESSION_COOKIE_AGE = 1209600
+
+# Allow sessions to persist beyond browser close (can be overridden per-login)
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+
+# Only save session when modified (performance)
+SESSION_SAVE_EVERY_REQUEST = False
+
+# Custom session cookie name
+SESSION_COOKIE_NAME = 'investr_sessionid'
+
+# Security: JavaScript cannot access session cookie
+SESSION_COOKIE_HTTPONLY = True
+
+# Set to True in production to require HTTPS
+SESSION_COOKIE_SECURE = False
+
+# CSRF protection
+SESSION_COOKIE_SAMESITE = 'Lax'
